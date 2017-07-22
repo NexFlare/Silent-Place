@@ -13,6 +13,7 @@ import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.nexflare.silentplace.Adapter.PlaceDetailAdapter;
+import com.nexflare.silentplace.DataBase.SilentPlaceDB;
 import com.nexflare.silentplace.Pojo.PlaceDetail;
 import com.nexflare.silentplace.R;
 
@@ -25,13 +26,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     ArrayList<PlaceDetail> placeDetailArray;
     RecyclerView rvPlace;
     PlaceDetailAdapter adapter;
+    SilentPlaceDB database;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         fabGetPlace= (FloatingActionButton) findViewById(R.id.fabGetPlace);
         rvPlace= (RecyclerView) findViewById(R.id.rvPlace);
-        placeDetailArray=new ArrayList<>();
+        database=new SilentPlaceDB(this);
+        placeDetailArray=database.getAllPlaces();
         adapter=new PlaceDetailAdapter(placeDetailArray,this);
         fabGetPlace.setOnClickListener(this);
         rvPlace.setLayoutManager(new LinearLayoutManager(this));
@@ -45,9 +48,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(requestCode==REQUEST_CODE_PLACE){
             if(resultCode==RESULT_OK){
                 Place place=PlaceAutocomplete.getPlace(this,data);
-                placeDetailArray.add(new PlaceDetail(place.getName().toString(),place.getLatLng()));
+                database.insertIntoTable(new PlaceDetail(place.getName().toString(),place.getLatLng()));
+                placeDetailArray=database.getAllPlaces();
                 adapter.updateArray(placeDetailArray);
-
             }
         }
     }
