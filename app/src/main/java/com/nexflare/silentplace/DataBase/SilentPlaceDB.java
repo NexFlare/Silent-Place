@@ -67,6 +67,10 @@ public class SilentPlaceDB extends SQLiteOpenHelper {
         database.insert(TABLE_NAME,null,contentValues);
 
     }
+    public void deleteItem(String name){
+        SQLiteDatabase database=getWritableDatabase();
+        database.delete(TABLE_NAME,COLUMN_NAME+" = ?",new String[]{name});
+    }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {

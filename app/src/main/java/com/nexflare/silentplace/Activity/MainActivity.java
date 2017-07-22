@@ -15,6 +15,7 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.nexflare.silentplace.Adapter.PlaceDetailAdapter;
 import com.nexflare.silentplace.DataBase.SilentPlaceDB;
+import com.nexflare.silentplace.Interface.DeleteItem;
 import com.nexflare.silentplace.Pojo.PlaceDetail;
 import com.nexflare.silentplace.R;
 
@@ -36,7 +37,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         rvPlace= (RecyclerView) findViewById(R.id.rvPlace);
         database=new SilentPlaceDB(this);
         placeDetailArray=database.getAllPlaces();
-        adapter=new PlaceDetailAdapter(placeDetailArray,this);
+        adapter=new PlaceDetailAdapter(placeDetailArray, this, new DeleteItem() {
+            @Override
+            public void onItemSelected(String item) {
+                database.deleteItem(item);
+                placeDetailArray=database.getAllPlaces();
+                adapter.updateArray(placeDetailArray);
+            }
+        });
         fabGetPlace.setOnClickListener(this);
         rvPlace.setLayoutManager(new LinearLayoutManager(this));
         rvPlace.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
