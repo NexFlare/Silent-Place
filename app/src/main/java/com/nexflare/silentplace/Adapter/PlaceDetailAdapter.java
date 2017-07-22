@@ -1,6 +1,7 @@
 package com.nexflare.silentplace.Adapter;
 
 import android.content.Context;
+import android.graphics.Typeface;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,6 +43,7 @@ public class PlaceDetailAdapter extends RecyclerView.Adapter<PlaceDetailAdapter.
     public void onBindViewHolder(PlaceViewHolder holder, int position) {
         PlaceDetail detail=mPlaceDetailArrayList.get(position);
         holder.tvPlaceName.setText(detail.getName());
+        holder.tvInitial.setText(detail.getName().substring(0,1));
     }
 
     @Override
@@ -51,10 +53,14 @@ public class PlaceDetailAdapter extends RecyclerView.Adapter<PlaceDetailAdapter.
 
     public class PlaceViewHolder extends RecyclerView.ViewHolder{
         TextView tvPlaceName;
+        TextView tvInitial;
+        Typeface typeface = Typeface.createFromAsset(mContext.getAssets(), "fonts/round-elegance.ttf");
 
         public PlaceViewHolder(View itemView) {
             super(itemView);
             tvPlaceName= (TextView) itemView.findViewById(R.id.tvName);
+            tvInitial= (TextView) itemView.findViewById(R.id.tvInitial);
+            tvPlaceName.setTypeface(typeface);
         }
     }
 
