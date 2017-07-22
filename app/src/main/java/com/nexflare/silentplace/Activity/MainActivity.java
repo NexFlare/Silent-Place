@@ -1,43 +1,32 @@
-package com.nexflare.silentplace;
+package com.nexflare.silentplace.Activity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.nexflare.silentplace.Pojo.PlaceDetail;
+import com.nexflare.silentplace.R;
 
-public class MainActivity extends AppCompatActivity {
-    public static final String API_KEY="AIzaSyBwtkA6ds-knHRg7eYutlF_Stgt7r_jVUA";
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     public static final String TAG="place_search";
     private static final int REQUEST_CODE_PLACE = 2511;
     FloatingActionButton fabGetPlace;
+    ArrayList<PlaceDetail> placeDetailArray;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         fabGetPlace= (FloatingActionButton) findViewById(R.id.fabGetPlace);
-
-        fabGetPlace.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    Intent intent=new PlaceAutocomplete.
-                            IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).
-                            build(MainActivity.this);
-                    startActivityForResult(intent,REQUEST_CODE_PLACE);
-                } catch (GooglePlayServicesRepairableException e) {
-                    e.printStackTrace();
-                } catch (GooglePlayServicesNotAvailableException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        placeDetailArray=new ArrayList<>();
+        fabGetPlace.setOnClickListener(this);
     }
 
 
@@ -47,7 +36,23 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode==REQUEST_CODE_PLACE){
             if(resultCode==RESULT_OK){
                 Place place=PlaceAutocomplete.getPlace(this,data);
-                Toast.makeText(this, place.getAddress(), Toast.LENGTH_SHORT).show();
+
+            }
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        if(v.getId()==R.id.fabGetPlace){
+            try {
+                Intent intent=new PlaceAutocomplete.
+                        IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN).
+                        build(MainActivity.this);
+                startActivityForResult(intent,REQUEST_CODE_PLACE);
+            } catch (GooglePlayServicesRepairableException e) {
+                e.printStackTrace();
+            } catch (GooglePlayServicesNotAvailableException e) {
+                e.printStackTrace();
             }
         }
     }

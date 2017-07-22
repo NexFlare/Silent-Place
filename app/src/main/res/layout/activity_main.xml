@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.nexflare.silentplace.MainActivity">
+    tools:context="com.nexflare.silentplace.Activity.MainActivity">
 
 
    <android.support.design.widget.FloatingActionButton
