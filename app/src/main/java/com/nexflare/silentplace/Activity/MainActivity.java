@@ -4,12 +4,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.nexflare.silentplace.Adapter.PlaceDetailAdapter;
 import com.nexflare.silentplace.Pojo.PlaceDetail;
 import com.nexflare.silentplace.R;
 
@@ -20,13 +23,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int REQUEST_CODE_PLACE = 2511;
     FloatingActionButton fabGetPlace;
     ArrayList<PlaceDetail> placeDetailArray;
+    RecyclerView rvPlace;
+    PlaceDetailAdapter adapter;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         fabGetPlace= (FloatingActionButton) findViewById(R.id.fabGetPlace);
+        rvPlace= (RecyclerView) findViewById(R.id.rvPlace);
         placeDetailArray=new ArrayList<>();
+        adapter=new PlaceDetailAdapter(placeDetailArray,this);
         fabGetPlace.setOnClickListener(this);
+        rvPlace.setLayoutManager(new LinearLayoutManager(this));
+        rvPlace.setAdapter(adapter);
     }
 
 
@@ -36,6 +45,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(requestCode==REQUEST_CODE_PLACE){
             if(resultCode==RESULT_OK){
                 Place place=PlaceAutocomplete.getPlace(this,data);
+                placeDetailArray.add(new PlaceDetail(place.getName().toString(),place.getLatLng()));
+                adapter.updateArray(placeDetailArray);
 
             }
         }
