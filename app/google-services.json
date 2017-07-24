@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "442873353947",
+    "firebase_url": "https://silent-place.firebaseio.com",
+    "project_id": "silent-place",
+    "storage_bucket": "silent-place.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:442873353947:android:055cc9689ae8506f",
+        "android_client_info": {
+          "package_name": "com.nexflare.silentplace"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "442873353947-e39fc3oqctgh4j3tgta3s89ulbmg8djg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nexflare.silentplace",
+            "certificate_hash": "effe09eee0370946c9cde39d551aef80fda83755"
+          }
+        },
+        {
+          "client_id": "442873353947-43r6l0hot14gjka7gen5vr2dkgm7mns3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB97aP1JzueA-h9P8izTBCn4wwUlQ1JtXY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "442873353947-43r6l0hot14gjka7gen5vr2dkgm7mns3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

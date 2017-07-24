@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           package="com.nexflare.silentplace">
+
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -29,6 +30,11 @@
 
         <service
             android:name=".Service.NearByService"
+            android:enabled="true"
+            android:exported="true">
+        </service>
+        <service
+            android:name=".Service.NearByService2"
             android:enabled="true"
             android:exported="true">
         </service>

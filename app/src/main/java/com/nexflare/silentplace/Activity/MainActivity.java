@@ -17,7 +17,12 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
+import com.google.android.gms.ads.AdListener;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
@@ -36,10 +41,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int REQUEST_CODE_PLACE = 2511;
     private static final int REQUEST_CODE_PERMISSION = 3215;
     FloatingActionButton fabGetPlace;
+    private AdView mAdView;
+    private InterstitialAd mInterstitialAd;
     ArrayList<PlaceDetail> placeDetailArray;
     LocationManager locationManager;
     boolean permissionGranted;
     RecyclerView rvPlace;
+    AdRequest adRequest;
     PlaceDetailAdapter adapter;
     SilentPlaceDB database;
 
@@ -47,6 +55,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mAdView = (AdView) findViewById(R.id.bannerAd);
+        adRequest = new AdRequest.Builder().build();
+        mInterstitialAd=new InterstitialAd(this);
+        mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+        mAdView.loadAd(adRequest);
         fabGetPlace = (FloatingActionButton) findViewById(R.id.fabGetPlace);
         rvPlace = (RecyclerView) findViewById(R.id.rvPlace);
         database = new SilentPlaceDB(this);
@@ -115,6 +128,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 database.insertIntoTable(new PlaceDetail(place.getName().toString(), place.getLatLng()));
                 placeDetailArray = database.getAllPlaces();
                 adapter.updateArray(placeDetailArray);
+                mInterstitialAd.loadAd(new AdRequest.Builder().build());
+                mInterstitialAd.setAdListener(new AdListener() {
+
+                    @Override
+                    public void onAdClosed() {
+                        super.onAdClosed();
+                        Toast.makeText(getBaseContext(), "Thank you for watching the ad", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onAdLoaded() {
+                        super.onAdLoaded();
+                        mInterstitialAd.show();
+                    }
+                });
             }
         }
     }
