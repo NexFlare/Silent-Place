@@ -1,4 +1,4 @@
-package com.nexflare.silentplace;
+package com.nexflare.silentplace.Utils;
 
 /**
  * Created by 15103068 on 22-07-2017.
