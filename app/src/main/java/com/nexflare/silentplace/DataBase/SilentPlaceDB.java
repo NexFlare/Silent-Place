@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import com.google.android.gms.maps.model.LatLng;
-import com.nexflare.silentplace.Pojo.PlaceDetail;
+import com.nexflare.silentplace.Model.PlaceDetail;
 
 import java.util.ArrayList;
 

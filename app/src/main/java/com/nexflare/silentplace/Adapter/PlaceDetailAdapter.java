@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.nexflare.silentplace.Interface.DeleteItem;
-import com.nexflare.silentplace.Pojo.PlaceDetail;
+import com.nexflare.silentplace.Model.PlaceDetail;
 import com.nexflare.silentplace.R;
 
 import java.util.ArrayList;

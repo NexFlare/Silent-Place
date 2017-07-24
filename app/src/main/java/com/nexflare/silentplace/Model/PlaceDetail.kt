@@ -1,4 +1,4 @@
-package com.nexflare.silentplace.Pojo
+package com.nexflare.silentplace.Model
 
 import com.google.android.gms.maps.model.LatLng
 

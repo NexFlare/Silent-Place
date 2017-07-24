@@ -21,7 +21,7 @@ import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.nexflare.silentplace.Adapter.PlaceDetailAdapter;
 import com.nexflare.silentplace.DataBase.SilentPlaceDB;
 import com.nexflare.silentplace.Interface.DeleteItem;
-import com.nexflare.silentplace.Pojo.PlaceDetail;
+import com.nexflare.silentplace.Model.PlaceDetail;
 import com.nexflare.silentplace.R;
 import com.nexflare.silentplace.Service.NearByService;
 
