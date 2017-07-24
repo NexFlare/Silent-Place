@@ -34,7 +34,7 @@
         android:gravity="center|left"
         android:paddingLeft="64dp"
         android:singleLine="true"
-        android:text="Coding Blocks"
+        android:text="Silent Places"
         android:textSize="24sp"
         android:textStyle="bold"/>
 

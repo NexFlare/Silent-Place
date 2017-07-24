@@ -52,7 +52,7 @@ public class NearByService extends Service {
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         audioManager= (AudioManager) getSystemService(AUDIO_SERVICE);
-        NearByLocationListener listner = new NearByLocationListener();
+        NearByLocationListener listener = new NearByLocationListener();
         database=new SilentPlaceDB(this);
         placeDetailArray=new ArrayList<>();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -60,8 +60,8 @@ public class NearByService extends Service {
 
         }
         else {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 80, listner);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,10000,80,listner);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 80, listener);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,10000,80,listener);
 
         }
         return START_STICKY;
