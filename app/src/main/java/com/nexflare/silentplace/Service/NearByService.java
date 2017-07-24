@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
@@ -33,6 +34,7 @@ public class NearByService extends Service {
     Retrofit retrofit;
     SilentPlaceDB database;
     Double latitude=null, longitude=null;
+    AudioManager audioManager;
     LocationManager locationManager;
 
     @Override
@@ -49,6 +51,7 @@ public class NearByService extends Service {
                 .baseUrl("https://maps.googleapis.com")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
+        audioManager= (AudioManager) getSystemService(AUDIO_SERVICE);
         NearByLocationListener listner = new NearByLocationListener();
         database=new SilentPlaceDB(this);
         placeDetailArray=new ArrayList<>();
@@ -75,7 +78,11 @@ public class NearByService extends Service {
             api.getDistance(latitude+","+longitude,destination, getString(R.string.API_KEY)).enqueue(new Callback<DistanceMatrixResult>() {
                 @Override
                 public void onResponse(Call<DistanceMatrixResult> call, Response<DistanceMatrixResult> response) {
-                    Log.d("TAGGER", "onResponse: "+response.body().getRows().get(0).getElements().get(0).getDistance().getValue());
+                    long distance= Long.parseLong(response.body().getRows().get(0).getElements().get(0).getDistance().getValue());
+                    Log.d("TAGGER", "onResponse: "+distance);
+                    if(distance <= 500){
+                        silentPhone();
+                    }
                 }
 
                 @Override
@@ -83,6 +90,12 @@ public class NearByService extends Service {
                     Log.d("TAGGER", "onFailure: ");
                 }
             });
+        }
+    }
+
+    private void silentPhone() {
+        if(audioManager.getRingerMode()==AudioManager.RINGER_MODE_NORMAL){
+            audioManager.setRingerMode(AudioManager.RINGER_MODE_VIBRATE);
         }
     }
 
