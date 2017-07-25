@@ -21,8 +21,8 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.nexflare.silentplace.DataBase.SilentPlaceDB;
 import com.nexflare.silentplace.Interface.DistanceMatrixApi;
-import com.nexflare.silentplace.Model.DistanceMatrixResult;
 import com.nexflare.silentplace.Model.PlaceDetail;
+import com.nexflare.silentplace.Model.WalkDistanceResult;
 import com.nexflare.silentplace.R;
 
 import java.util.ArrayList;
@@ -69,7 +69,7 @@ public class NearByService extends Service implements GoogleApiClient.Connection
                 .build();
         mGoogleApiClient.connect();
         retrofit = new Retrofit.Builder()
-                .baseUrl("https://maps.googleapis.com")
+                .baseUrl("http://maps.google.com")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
@@ -81,12 +81,23 @@ public class NearByService extends Service implements GoogleApiClient.Connection
     private void checkIfNearByPlace() {
         placeDetailArray = database.getAllPlaces();
         DistanceMatrixApi api = retrofit.create(DistanceMatrixApi.class);
-        if (latitude != null)
+        if (latitude != null&&placeDetailArray.size()>0)
             for (int i = 0; i < placeDetailArray.size(); i++) {
                 String destination = placeDetailArray.get(i).getLatLng().latitude + "," + placeDetailArray.get(i).getLatLng().longitude;
                 Log.d("TAGGER", "checkIfNearByPlace: " + destination);
                 Log.d("TAGGER", "checkIfNearByPlace: " + getString(R.string.API_KEY));
-                api.getDistance(latitude + "," + longitude, destination, getString(R.string.API_KEY)).enqueue(new Callback<DistanceMatrixResult>() {
+                api.getWalkingDistance(latitude+","+longitude,destination,"false","metric","walking").enqueue(new Callback<WalkDistanceResult>() {
+                    @Override
+                    public void onResponse(Call<WalkDistanceResult> call, Response<WalkDistanceResult> response) {
+                        Log.d("TAGGER", "onResponse: "+response.body().getRoutes().get(0).getLegs().get(0).getDistance().getValue());
+                    }
+
+                    @Override
+                    public void onFailure(Call<WalkDistanceResult> call, Throwable t) {
+                        Log.d("TAGGER", "onFailure: ");
+                    }
+                });
+                /*api.getDistance(latitude + "," + longitude, destination, getString(R.string.API_KEY)).enqueue(new Callback<DistanceMatrixResult>() {
                     @Override
                     public void onResponse(Call<DistanceMatrixResult> call, Response<DistanceMatrixResult> response) {
                         long distance = Long.parseLong(response.body().getRows().get(0).getElements().get(0).getDistance().getValue());
@@ -103,7 +114,7 @@ public class NearByService extends Service implements GoogleApiClient.Connection
                     public void onFailure(Call<DistanceMatrixResult> call, Throwable t) {
                         Log.d("TAGGER", "onFailure: ");
                     }
-                });
+                });*/
             }
     }
 
@@ -122,8 +133,8 @@ public class NearByService extends Service implements GoogleApiClient.Connection
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         LocationRequest request = LocationRequest.create()
-                .setInterval(15000)
-                .setFastestInterval(7500)
+                .setInterval(30000)
+                .setFastestInterval(20000)
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
@@ -135,6 +146,8 @@ public class NearByService extends Service implements GoogleApiClient.Connection
                 public void onLocationChanged(Location location) {
                     latitude=location.getLatitude();
                     longitude=location.getLongitude();
+                    Log.d("TAGGER", "onLocationChanged: "+latitude);
+                    Log.d("TAGGER", "onLocationChanged: "+longitude);
                     checkIfNearByPlace();
                 }
             });
