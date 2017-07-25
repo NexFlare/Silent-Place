@@ -23,7 +23,6 @@ import com.nexflare.silentplace.DataBase.SilentPlaceDB;
 import com.nexflare.silentplace.Interface.DistanceMatrixApi;
 import com.nexflare.silentplace.Model.PlaceDetail;
 import com.nexflare.silentplace.Model.WalkDistanceResult;
-import com.nexflare.silentplace.R;
 
 import java.util.ArrayList;
 
@@ -46,7 +45,7 @@ public class NearByService extends Service implements GoogleApiClient.Connection
     AudioManager audioManager;
     SharedPreferences sharedPref;
 
-    boolean decider;
+    public static final String TAGGER="TAGGER";
 
     @Override
     public void onCreate() {
@@ -81,40 +80,29 @@ public class NearByService extends Service implements GoogleApiClient.Connection
     private void checkIfNearByPlace() {
         placeDetailArray = database.getAllPlaces();
         DistanceMatrixApi api = retrofit.create(DistanceMatrixApi.class);
-        if (latitude != null&&placeDetailArray.size()>0)
+        if (latitude != null&&placeDetailArray.size()>0&&audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL)
             for (int i = 0; i < placeDetailArray.size(); i++) {
                 String destination = placeDetailArray.get(i).getLatLng().latitude + "," + placeDetailArray.get(i).getLatLng().longitude;
-                Log.d("TAGGER", "checkIfNearByPlace: " + destination);
-                Log.d("TAGGER", "checkIfNearByPlace: " + getString(R.string.API_KEY));
+                Log.d(TAGGER, "checkIfNearByPlace: " + destination);
                 api.getWalkingDistance(latitude+","+longitude,destination,"false","metric","walking").enqueue(new Callback<WalkDistanceResult>() {
                     @Override
                     public void onResponse(Call<WalkDistanceResult> call, Response<WalkDistanceResult> response) {
-                        Log.d("TAGGER", "onResponse: "+response.body().getRoutes().get(0).getLegs().get(0).getDistance().getValue());
-                    }
+                        Log.d(TAGGER, "onResponse: "+response.body().getRoutes().get(0).getLegs().get(0).getDistance().getValue());
+                        if(response.body().getStatus().equals("OK")) {
+                            long distance = Long.parseLong(response.body().getRoutes().get(0).getLegs().get(0).getDistance().getValue());
+                            if (distance <= 100 && (sharedPref.getBoolean("enable", true))) {
+                                silentPhone();
+                                Log.d(TAGGER, "onResponse:" + sharedPref.getBoolean("enable", true) + "calledcalledcalledcalled");
 
-                    @Override
-                    public void onFailure(Call<WalkDistanceResult> call, Throwable t) {
-                        Log.d("TAGGER", "onFailure: ");
-                    }
-                });
-                /*api.getDistance(latitude + "," + longitude, destination, getString(R.string.API_KEY)).enqueue(new Callback<DistanceMatrixResult>() {
-                    @Override
-                    public void onResponse(Call<DistanceMatrixResult> call, Response<DistanceMatrixResult> response) {
-                        long distance = Long.parseLong(response.body().getRows().get(0).getElements().get(0).getDistance().getValue());
-                        Log.d("TAGGER", "onResponse: " + distance);
-                        Log.d("Tagger","onResponse:" +sharedPref.getBoolean("enable",true));
-                        if (distance <= 100 && (sharedPref.getBoolean("enable",true))) {
-                            silentPhone();
-                            Log.d("Tagger","onResponse:" +sharedPref.getBoolean("enable",true) +"calledcalledcalledcalled");
-
+                            }
                         }
                     }
 
                     @Override
-                    public void onFailure(Call<DistanceMatrixResult> call, Throwable t) {
-                        Log.d("TAGGER", "onFailure: ");
+                    public void onFailure(Call<WalkDistanceResult> call, Throwable t) {
+                        Log.d(TAGGER, "onFailure: ");
                     }
-                });*/
+                });
             }
     }
 
