@@ -7,6 +7,6 @@ import android.support.annotation.Keep
  */
 
 @Keep
-data class Elements(var distance: MatrixDistance)
+data class Elements(var distance: MatrixDistance,var status: String)
 
 

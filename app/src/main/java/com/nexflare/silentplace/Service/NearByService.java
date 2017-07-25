@@ -14,6 +14,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -35,9 +36,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NearByService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     public NearByService() {
-
+        Log.e("Tagger","Constructor");
     }
-
     GoogleApiClient mGoogleApiClient;
     ArrayList<PlaceDetail> placeDetailArray;
     Retrofit retrofit;
@@ -46,11 +46,16 @@ public class NearByService extends Service implements GoogleApiClient.Connection
     AudioManager audioManager;
     SharedPreferences sharedPref;
 
-    boolean decider;
-
     @Override
     public void onCreate() {
         super.onCreate();
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+        mGoogleApiClient.connect();
+        Toast.makeText(this, "OnCreate()", Toast.LENGTH_SHORT).show();
         Log.d("Location", "onCreate: ");
     }
 
@@ -59,15 +64,6 @@ public class NearByService extends Service implements GoogleApiClient.Connection
         Log.d("Location", "onStartCommand: ");
 
          sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-
-
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-        mGoogleApiClient.connect();
         retrofit = new Retrofit.Builder()
                 .baseUrl("https://maps.googleapis.com")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -81,8 +77,39 @@ public class NearByService extends Service implements GoogleApiClient.Connection
     private void checkIfNearByPlace() {
         placeDetailArray = database.getAllPlaces();
         DistanceMatrixApi api = retrofit.create(DistanceMatrixApi.class);
-        if (latitude != null)
-            for (int i = 0; i < placeDetailArray.size(); i++) {
+        if (latitude != null&&audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL){
+            String destination="";
+            for(int i=0;i<placeDetailArray.size();i++){
+                destination+=placeDetailArray.get(i).getLatLng().latitude + "," + placeDetailArray.get(i).getLatLng().longitude;
+                if(i!=placeDetailArray.size()-1)
+                    destination+="|";
+            }
+            Log.d("TAGGER", "checkIfNearByPlace: "+destination);
+            api.getDistance(latitude+","+longitude,destination,getString(R.string.API_KEY)).enqueue(new Callback<DistanceMatrixResult>() {
+                @Override
+                public void onResponse(Call<DistanceMatrixResult> call, Response<DistanceMatrixResult> response) {
+                    for (int i=0;i<response.body().getRows().get(0).getElements().size();i++){
+
+                        if(response.body().getRows().get(0).getElements().get(i).getStatus().equals("OK")){
+                            long distance = Long.parseLong(response.body().getRows().get(0).getElements().get(i).getDistance().getValue());
+                            Log.d("TAGGER", "onResponse: "+distance);
+                            if(distance<=100&& (sharedPref.getBoolean("enable",true))){
+                                silentPhone();
+                                Log.d("Tagger","onResponse:" +sharedPref.getBoolean("enable",true) +"calledcalledcalledcalled");
+                                break;
+                            }
+                        }
+
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<DistanceMatrixResult> call, Throwable t) {
+
+                }
+            });
+        }
+           /* for (int i = 0; i < placeDetailArray.size(); i++) {
                 String destination = placeDetailArray.get(i).getLatLng().latitude + "," + placeDetailArray.get(i).getLatLng().longitude;
                 Log.d("TAGGER", "checkIfNearByPlace: " + destination);
                 Log.d("TAGGER", "checkIfNearByPlace: " + getString(R.string.API_KEY));
@@ -104,7 +131,7 @@ public class NearByService extends Service implements GoogleApiClient.Connection
                         Log.d("TAGGER", "onFailure: ");
                     }
                 });
-            }
+            }*/
     }
 
     private void silentPhone() {
@@ -133,6 +160,8 @@ public class NearByService extends Service implements GoogleApiClient.Connection
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, request, new com.google.android.gms.location.LocationListener() {
                 @Override
                 public void onLocationChanged(Location location) {
+                    Log.d("TAGGER", "onLocationChanged: "+location.getLatitude());
+                    Log.d("TAGGER", "onLocationChanged: "+location.getLongitude());
                     latitude=location.getLatitude();
                     longitude=location.getLongitude();
                     checkIfNearByPlace();
