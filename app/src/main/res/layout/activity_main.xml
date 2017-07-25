@@ -21,17 +21,17 @@
 
    <android.support.v7.widget.RecyclerView
        android:layout_width="match_parent"
-       android:layout_height="match_parent"
+       android:layout_height="479dp"
        android:id="@+id/rvPlace"/>
+
    <com.google.android.gms.ads.AdView
        android:id="@+id/bannerAd"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
-       android:layout_centerHorizontal="true"
        android:layout_alignParentBottom="true"
+       android:layout_centerHorizontal="true"
        android:layout_gravity="bottom|left"
        ads:adSize="BANNER"
-       ads:adUnitId="@string/banner_ad_unit_id">
-   </com.google.android.gms.ads.AdView>
+       ads:adUnitId="@string/banner_ad_unit_id"></com.google.android.gms.ads.AdView>
 
 </FrameLayout>

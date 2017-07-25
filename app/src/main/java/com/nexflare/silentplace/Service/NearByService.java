@@ -3,11 +3,13 @@ package com.nexflare.silentplace.Service;
 import android.Manifest;
 import android.app.Service;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -33,6 +35,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NearByService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     public NearByService() {
+
     }
 
     GoogleApiClient mGoogleApiClient;
@@ -41,6 +44,9 @@ public class NearByService extends Service implements GoogleApiClient.Connection
     SilentPlaceDB database;
     Double latitude = null, longitude = null;
     AudioManager audioManager;
+    SharedPreferences sharedPref;
+
+    boolean decider;
 
     @Override
     public void onCreate() {
@@ -51,6 +57,11 @@ public class NearByService extends Service implements GoogleApiClient.Connection
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("Location", "onStartCommand: ");
+
+         sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+
+
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
@@ -80,8 +91,11 @@ public class NearByService extends Service implements GoogleApiClient.Connection
                     public void onResponse(Call<DistanceMatrixResult> call, Response<DistanceMatrixResult> response) {
                         long distance = Long.parseLong(response.body().getRows().get(0).getElements().get(0).getDistance().getValue());
                         Log.d("TAGGER", "onResponse: " + distance);
-                        if (distance <= 100) {
+                        Log.d("Tagger","onResponse:" +sharedPref.getBoolean("enable",true));
+                        if (distance <= 100 && (sharedPref.getBoolean("enable",true))) {
                             silentPhone();
+                            Log.d("Tagger","onResponse:" +sharedPref.getBoolean("enable",true) +"calledcalledcalledcalled");
+
                         }
                     }
 
