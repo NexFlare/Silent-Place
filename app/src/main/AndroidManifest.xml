@@ -20,7 +20,9 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".Activity.MainActivity">
+        <activity android:name=".Activity.MainActivity"
+            android:screenOrientation="portrait">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -33,7 +35,8 @@
             android:enabled="true"
             android:exported="true"></service>
 
-        <activity android:name=".Activity.SettingsActivity"></activity>
+        <activity android:name=".Activity.SettingsActivity"
+            android:screenOrientation="portrait"></activity>
     </application>
 
 </manifest>

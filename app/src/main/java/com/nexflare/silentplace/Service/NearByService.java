@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.media.AudioManager;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -33,11 +34,17 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NearByService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+
+
+    public GoogleApiClient mGoogleApiClient;
+
+    public LocationRequest request;
+
+    private final IBinder mBinder = new LocalBinder();
     public NearByService() {
 
     }
 
-    GoogleApiClient mGoogleApiClient;
     ArrayList<PlaceDetail> placeDetailArray;
     Retrofit retrofit;
     SilentPlaceDB database;
@@ -50,6 +57,13 @@ public class NearByService extends Service implements GoogleApiClient.Connection
     @Override
     public void onCreate() {
         super.onCreate();
+
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+        mGoogleApiClient.connect();
         Log.d("Location", "onCreate: ");
     }
 
@@ -61,12 +75,7 @@ public class NearByService extends Service implements GoogleApiClient.Connection
 
 
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addApi(LocationServices.API)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .build();
-        mGoogleApiClient.connect();
+
         retrofit = new Retrofit.Builder()
                 .baseUrl("http://maps.google.com")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -114,13 +123,12 @@ public class NearByService extends Service implements GoogleApiClient.Connection
 
     @Override
     public IBinder onBind(Intent intent) {
-        // TODO: Return the communication channel to the service.
-        throw new UnsupportedOperationException("Not yet implemented");
+        return mBinder;
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        LocationRequest request = LocationRequest.create()
+         request = LocationRequest.create()
                 .setInterval(30000)
                 .setFastestInterval(20000)
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
@@ -152,4 +160,10 @@ public class NearByService extends Service implements GoogleApiClient.Connection
 
     }
 
+    public class LocalBinder extends Binder {
+        public NearByService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return NearByService.this;
+        }
+    }
 }

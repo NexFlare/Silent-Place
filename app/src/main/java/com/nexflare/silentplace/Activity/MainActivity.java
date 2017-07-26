@@ -1,11 +1,16 @@
 package com.nexflare.silentplace.Activity;
 
 import android.Manifest;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -27,6 +32,16 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsStates;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.nexflare.silentplace.Adapter.PlaceDetailAdapter;
@@ -50,6 +65,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     boolean permissionGranted;
     RecyclerView rvPlace;
     AdRequest adRequest;
+    NearByService mService;
+
+    boolean mBound = false;
     PlaceDetailAdapter adapter;
     SilentPlaceDB database;
 
@@ -75,13 +93,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 adapter.updateArray(placeDetailArray);
             }
         });
-        checkforPermission();
-        checkLocationEnabled();
+/*
         startService(new Intent(MainActivity.this, NearByService.class));
+*/
         fabGetPlace.setOnClickListener(this);
         rvPlace.setLayoutManager(new LinearLayoutManager(this));
         rvPlace.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
         rvPlace.setAdapter(adapter);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        startService(new Intent(MainActivity.this, NearByService.class));
+
+        Intent intent = new Intent(this, NearByService.class);
+        bindService(intent,mConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void checkLocationEnabled(){
@@ -118,6 +145,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         else{
             permissionGranted=true;
+            AutoLoactiongiven(mService.request,mService.mGoogleApiClient);
+
         }
     }
 
@@ -150,6 +179,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    protected void onStop() {
+        super.onStop();
+        if (mBound) {
+            unbindService(mConnection);
+            mBound = false;
+        }
+    }
+
+    @Override
     public void onClick(View v) {
         if (v.getId() == R.id.fabGetPlace) {
             try {
@@ -172,6 +210,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(grantResults[0]==PackageManager.PERMISSION_GRANTED){
                 permissionGranted=true;
                 Log.d("TAGGER", "onRequestPermissionsResult: ");
+                AutoLoactiongiven(mService.request,mService.mGoogleApiClient);
+
                 startService(new Intent(MainActivity.this, NearByService.class));
             }
         }
@@ -190,5 +230,67 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(i);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+            // We've bound to LocalService, cast the IBinder and get LocalService instance
+            NearByService.LocalBinder binder = (NearByService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+            checkforPermission();
+
+
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
+
+
+    private void AutoLoactiongiven(LocationRequest mLocationRequest, GoogleApiClient mGoogleApiClient)
+    {
+
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(mLocationRequest);
+        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi
+                .checkLocationSettings(mGoogleApiClient, builder.build());
+        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
+            @Override
+            public void onResult(LocationSettingsResult result) {
+                final Status status = result.getStatus();
+                final LocationSettingsStates state = result.getLocationSettingsStates();
+                switch (status.getStatusCode()) {
+                    case LocationSettingsStatusCodes.SUCCESS:
+                        // All location settings are satisfied. The client can
+                        // initialize location
+                        // requests here.
+                        break;
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied. But could be
+                        // fixed by showing the user
+                        // a dialog.
+                        try {
+                            // Show the dialog by calling
+                            // startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            status.startResolutionForResult(MainActivity.this, 1000);
+                        } catch (IntentSender.SendIntentException e) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have
+                        // no way to fix the
+                        // settings so we won't show the dialog.
+                        break;
+                }
+            }
+        });
     }
 }
