@@ -5,7 +5,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
@@ -32,16 +31,6 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
-import com.google.android.gms.location.LocationSettingsStates;
-import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.nexflare.silentplace.Adapter.PlaceDetailAdapter;
@@ -66,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     RecyclerView rvPlace;
     AdRequest adRequest;
     NearByService mService;
-
+public static Context c;
     boolean mBound = false;
     PlaceDetailAdapter adapter;
     SilentPlaceDB database;
@@ -75,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        c=this;
         mAdView = (AdView) findViewById(R.id.bannerAd);
         adRequest = new AdRequest.Builder().build();
         mInterstitialAd=new InterstitialAd(this);
@@ -93,6 +83,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 adapter.updateArray(placeDetailArray);
             }
         });
+
+
+
 /*
         startService(new Intent(MainActivity.this, NearByService.class));
 */
@@ -107,6 +100,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onStart();
         startService(new Intent(MainActivity.this, NearByService.class));
 
+        Intent intent = new Intent(this, NearByService.class);
+        bindService(intent,mConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         Intent intent = new Intent(this, NearByService.class);
         bindService(intent,mConnection, Context.BIND_AUTO_CREATE);
     }
@@ -135,20 +135,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void checkforPermission() {
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_CODE_PERMISSION);
 
-        }
-        else{
-            permissionGranted=true;
-            AutoLoactiongiven(mService.request,mService.mGoogleApiClient);
-
-        }
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -210,9 +197,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if(grantResults[0]==PackageManager.PERMISSION_GRANTED){
                 permissionGranted=true;
                 Log.d("TAGGER", "onRequestPermissionsResult: ");
+/*
                 AutoLoactiongiven(mService.request,mService.mGoogleApiClient);
+*/
 
+/*
                 startService(new Intent(MainActivity.this, NearByService.class));
+*/
             }
         }
     }
@@ -243,7 +234,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mBound = true;
             checkforPermission();
 
-
         }
 
         @Override
@@ -253,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
 
 
-    private void AutoLoactiongiven(LocationRequest mLocationRequest, GoogleApiClient mGoogleApiClient)
+    /*private void AutoLoactiongiven(LocationRequest mLocationRequest, GoogleApiClient mGoogleApiClient)
     {
 
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
@@ -292,5 +282,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         });
+    }*/
+
+    public  void checkforPermission() {
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_CODE_PERMISSION);
+
+        }
+        else{
+            permissionGranted=true;
+/*
+            AutoLoactiongiven(mService.request,mService.mGoogleApiClient);
+*/
+
+        }
     }
 }

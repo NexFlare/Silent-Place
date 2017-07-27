@@ -20,9 +20,9 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".Activity.MainActivity"
+        <activity
+            android:name=".Activity.MainActivity"
             android:screenOrientation="portrait">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -33,10 +33,17 @@
         <service
             android:name=".Service.NearByService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
 
-        <activity android:name=".Activity.SettingsActivity"
-            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".Activity.SettingsActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".Activity.SpalshActivity"
+            android:screenOrientation="portrait">
+
+        </activity>
     </application>
+
 
 </manifest>
