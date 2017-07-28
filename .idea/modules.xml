@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Silent-Place.iml" filepath="$PROJECT_DIR$/Silent-Place.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Silent-Place.iml" filepath="$PROJECT_DIR$/Silent-Place.iml" />
       <module fileurl="file://$PROJECT_DIR$/SilentPlace.iml" filepath="$PROJECT_DIR$/SilentPlace.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
