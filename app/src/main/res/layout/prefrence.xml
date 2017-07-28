@@ -5,6 +5,6 @@
     <CheckBoxPreference
         android:key="enable"
         android:title="Enable Silent Mode"
-        android:summary="This will enble the sevice to solent your phone"
+        android:summary="This will enable the app to silent your phone"
         android:defaultValue="true" />
 </PreferenceScreen>

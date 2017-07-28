@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import static com.nexflare.silentplace.Utils.SilentPlaceDBHelper.*;
 
 /**
- * Created by 15103068 on 22-07-2017.
+ * Created by NexFlare on 22-07-2017.
  */
 
 public class SilentPlaceDB extends SQLiteOpenHelper {

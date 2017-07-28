@@ -34,38 +34,33 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class NearByService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     public NearByService() {
-
     }
 
-    GoogleApiClient mGoogleApiClient;
+    public static GoogleApiClient mGoogleApiClient;
     ArrayList<PlaceDetail> placeDetailArray;
     Retrofit retrofit;
     SilentPlaceDB database;
     Double latitude = null, longitude = null;
     AudioManager audioManager;
     SharedPreferences sharedPref;
-
-    public static final String TAGGER="TAGGER";
+    public static LocationRequest request;
+    public static final String TAGGER = "TAGGER";
 
     @Override
     public void onCreate() {
         super.onCreate();
         Log.d("Location", "onCreate: ");
-    }
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("Location", "onStartCommand: ");
-
-         sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-
-
-
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .build();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d("Location", "onStartCommand: ");
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         mGoogleApiClient.connect();
         retrofit = new Retrofit.Builder()
                 .baseUrl("http://maps.google.com")
@@ -79,30 +74,36 @@ public class NearByService extends Service implements GoogleApiClient.Connection
 
     private void checkIfNearByPlace() {
         placeDetailArray = database.getAllPlaces();
+        Log.d("RELEASE", "checkIfNearByPlace: " + database.getAllPlaces().size());
         DistanceMatrixApi api = retrofit.create(DistanceMatrixApi.class);
-        if (latitude != null&&placeDetailArray.size()>0&&audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL)
+        if (latitude != null && placeDetailArray.size() > 0 && audioManager.getRingerMode() == AudioManager.RINGER_MODE_NORMAL)
             for (int i = 0; i < placeDetailArray.size(); i++) {
                 String destination = placeDetailArray.get(i).getLatLng().latitude + "," + placeDetailArray.get(i).getLatLng().longitude;
                 Log.d(TAGGER, "checkIfNearByPlace: " + destination);
-                api.getWalkingDistance(latitude+","+longitude,destination,"false","metric","walking").enqueue(new Callback<WalkDistanceResult>() {
-                    @Override
-                    public void onResponse(Call<WalkDistanceResult> call, Response<WalkDistanceResult> response) {
-                        Log.d(TAGGER, "onResponse: "+response.body().getRoutes().get(0).getLegs().get(0).getDistance().getValue());
-                        if(response.body().getStatus().equals("OK")) {
-                            long distance = Long.parseLong(response.body().getRoutes().get(0).getLegs().get(0).getDistance().getValue());
-                            if (distance <= 100 && (sharedPref.getBoolean("enable", true))) {
-                                silentPhone();
-                                Log.d(TAGGER, "onResponse:" + sharedPref.getBoolean("enable", true) + "calledcalledcalledcalled");
-
+                try {
+                    api.getWalkingDistance(latitude + "," + longitude, destination, "false", "metric", "walking").enqueue(new Callback<WalkDistanceResult>() {
+                        @Override
+                        public void onResponse(Call<WalkDistanceResult> call, Response<WalkDistanceResult> response) {
+                            Log.d("TAGGER", "onResponse: " + response.body().getStatus());
+                            //Log.d(TAGGER, "onResponse: "+response.body().getRoutes().get(0).getLegs().get(0).getDistance().getValue());
+                            if (response.body().getStatus().equals("OK")) {
+                                long distance = Long.parseLong(response.body().getRoutes().get(0).getLegs().get(0).getDistance().getValue());
+                                Log.d("RELEASE", "onResponse: " + distance);
+                                if (distance <= 100 && (sharedPref.getBoolean("enable", true))) {
+                                    silentPhone();
+                                    Log.d(TAGGER, "onResponse:" + sharedPref.getBoolean("enable", true) + "called called called called");
+                                }
                             }
                         }
-                    }
 
-                    @Override
-                    public void onFailure(Call<WalkDistanceResult> call, Throwable t) {
-                        Log.d(TAGGER, "onFailure: ");
-                    }
-                });
+                        @Override
+                        public void onFailure(Call<WalkDistanceResult> call, Throwable t) {
+                            Log.d(TAGGER, "onFailure: ");
+                        }
+                    });
+                } catch (Exception e) {
+                    Log.d("RELEASE", "checkIfNearByPlace: " + e.getMessage());
+                }
             }
     }
 
@@ -120,25 +121,26 @@ public class NearByService extends Service implements GoogleApiClient.Connection
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        LocationRequest request = LocationRequest.create()
+
+        request = LocationRequest.create()
                 .setInterval(30000)
                 .setFastestInterval(20000)
                 .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             return;
-        }
-        else {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, request, new com.google.android.gms.location.LocationListener() {
-                @Override
-                public void onLocationChanged(Location location) {
-                    latitude=location.getLatitude();
-                    longitude=location.getLongitude();
-                    Log.d("TAGGER", "onLocationChanged: "+latitude);
-                    Log.d("TAGGER", "onLocationChanged: "+longitude);
-                    checkIfNearByPlace();
-                }
-            });
+        } else {
+            if (mGoogleApiClient.isConnected())
+                LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, request, new com.google.android.gms.location.LocationListener() {
+                    @Override
+                    public void onLocationChanged(Location location) {
+                        latitude = location.getLatitude();
+                        longitude = location.getLongitude();
+                        Log.d("RELEASE", "onLocationChanged: " + latitude);
+                        Log.d("RELEASE", "onLocationChanged: " + longitude);
+                        checkIfNearByPlace();
+                    }
+                });
         }
     }
 

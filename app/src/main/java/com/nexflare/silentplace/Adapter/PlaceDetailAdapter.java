@@ -17,7 +17,7 @@ import com.nexflare.silentplace.R;
 import java.util.ArrayList;
 
 /**
- * Created by 15103068 on 22-07-2017.
+ * Created by NexFlare on 22-07-2017.
  */
 
 public class PlaceDetailAdapter extends RecyclerView.Adapter<PlaceDetailAdapter.PlaceViewHolder> {

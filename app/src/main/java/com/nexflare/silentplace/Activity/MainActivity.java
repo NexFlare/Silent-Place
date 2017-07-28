@@ -3,6 +3,7 @@ package com.nexflare.silentplace.Activity;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -27,6 +28,8 @@ import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.InterstitialAd;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.nexflare.silentplace.Adapter.PlaceDetailAdapter;
@@ -38,11 +41,14 @@ import com.nexflare.silentplace.Service.NearByService;
 
 import java.util.ArrayList;
 
+import uk.co.samuelwall.materialtaptargetprompt.MaterialTapTargetPrompt;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String TAG = "place_search";
     private static final int REQUEST_CODE_PLACE = 2511;
     private static final int REQUEST_CODE_PERMISSION = 3215;
     FloatingActionButton fabGetPlace;
+    SharedPreferences mSharedPreferences;
     private AdView mAdView;
     private InterstitialAd mInterstitialAd;
     ArrayList<PlaceDetail> placeDetailArray;
@@ -52,15 +58,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     AdRequest adRequest;
     PlaceDetailAdapter adapter;
     SilentPlaceDB database;
+    GoogleApiClient mGoogleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mAdView = (AdView) findViewById(R.id.bannerAd);
+        mSharedPreferences=getSharedPreferences("khamosh",MODE_PRIVATE);
         adRequest = new AdRequest.Builder().build();
+        mGoogleApiClient=new GoogleApiClient.Builder(this).addApi(LocationServices.API).build();
+        mGoogleApiClient.connect();
         mInterstitialAd=new InterstitialAd(this);
-        mInterstitialAd.setAdUnitId("ca-app-pub-3940256099942544/1033173712");
+        mInterstitialAd.setAdUnitId("ca-app-pub-3648820685562289/4565830930");
         mAdView.loadAd(adRequest);
         fabGetPlace = (FloatingActionButton) findViewById(R.id.fabGetPlace);
         rvPlace = (RecyclerView) findViewById(R.id.rvPlace);
@@ -75,8 +85,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 adapter.updateArray(placeDetailArray);
             }
         });
-        checkforPermission();
-        checkLocationEnabled();
+
+            checkforPermission();
+
+        Log.d("CHECK", "onCreate: "+mSharedPreferences.getBoolean("firstTime",true));
         startService(new Intent(MainActivity.this, NearByService.class));
         fabGetPlace.setOnClickListener(this);
         rvPlace.setLayoutManager(new LinearLayoutManager(this));
@@ -88,8 +100,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
             AlertDialog.Builder locationAlert=new AlertDialog.Builder(this)
                     .setIcon(R.mipmap.ic_launcher)
-                    .setMessage("Enable location settings")
-                    .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    .setMessage("To continue, let your device turn on location, which uses Google's location service")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent intent=new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
@@ -97,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             dialog.dismiss();
                         }
                     })
-                    .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    .setNegativeButton("CANCEL", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
@@ -114,13 +126,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION)
                         != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},REQUEST_CODE_PERMISSION);
-
         }
         else{
+            checkLocationEnabled();
             permissionGranted=true;
         }
     }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -137,6 +148,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     public void onAdClosed() {
                         super.onAdClosed();
                         Toast.makeText(getBaseContext(), "Thank you for watching the ad", Toast.LENGTH_SHORT).show();
+                        checkLocationEnabled();
                     }
 
                     @Override
@@ -146,9 +158,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 });
             }
+            else{
+                checkLocationEnabled();
+            }
         }
     }
-
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.fabGetPlace) {
@@ -164,11 +178,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(requestCode==REQUEST_CODE_PERMISSION){
+            if(mSharedPreferences.getBoolean("firstTime",true)){
+
+                new MaterialTapTargetPrompt.Builder(this)
+                        .setTarget(fabGetPlace)
+                        .setPrimaryText("Search")
+                        .setSecondaryText("Tap here to search for place where you want your phone to be silent.")
+                        .setPromptStateChangeListener(new MaterialTapTargetPrompt.PromptStateChangeListener() {
+                            @Override
+                            public void onPromptStateChanged(MaterialTapTargetPrompt prompt, int state) {
+
+                                Log.d("STATE", "onPromptStateChanged: "+state);
+                            }
+                        }).show();
+                SharedPreferences.Editor editor=mSharedPreferences.edit();
+                editor.putBoolean("firstTime",false);
+                editor.commit();
+            }
             if(grantResults[0]==PackageManager.PERMISSION_GRANTED){
                 permissionGranted=true;
                 Log.d("TAGGER", "onRequestPermissionsResult: ");
@@ -176,7 +206,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu, menu);
